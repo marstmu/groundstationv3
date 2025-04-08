@@ -3,7 +3,7 @@ import requests
 import time
 
 # serial port
-SERIAL_PORT = '/dev/tty.usbmodem101'
+SERIAL_PORT = '/dev/tty.usbmodem1101'
 BAUD_RATE = 9600
 
 # url
@@ -22,16 +22,16 @@ def read_serial_data():
                     # format: w,x,y,z,sys_cal,gyro_cal,accel_cal,mag_cal
                     try:
                         parts = line.split(',')
-                        if len(parts) == 8:
-                            w, x, y, z, sys_cal, gyro_cal, accel_cal, mag_cal = map(float, parts)
+                        if len(parts) == 15:
+                            w, x, y, z, long, lat, alt, pressure, ax, ay, az, gx, gy, gz, rssi = map(float, parts)
                             print(f"Quaternion: w={w}, x={x}, y={y}, z={z}")
-                            print(f"Calibration: sys={sys_cal}, gyro={gyro_cal}, accel={accel_cal}, mag={mag_cal}")
+                            print(f"Calibration: sys={0}, gyro={0}, accel={0}, mag={0}")
 
                             # send to flask
                             data = {
                                 'w': w, 'x': x, 'y': y, 'z': z,
-                                'sys_cal': sys_cal, 'gyro_cal': gyro_cal,
-                                'accel_cal': accel_cal, 'mag_cal': mag_cal
+                                'sys_cal': 3, 'gyro_cal': 3,
+                                'accel_cal': 3, 'mag_cal': 3
                             }
                             response = requests.post(FLASK_SERVER_URL, json=data)
                             if response.status_code != 200:
