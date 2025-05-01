@@ -56,7 +56,14 @@ export default function Telemetry() {
             setMcuTemp(value[4]);
             
             if (value.length > 5) {
-                setSpeed(`${value[5] !== undefined ? value[5] : 52} m/s`);
+                // Speed we can determine as we have acceleration and a constant time step.
+                const vx = (value[11] !== undefined ? value[11] : 0) * 0.1;
+                const vy = (value[12] !== undefined ? value[12] : 0) * 0.1;
+                const vz = (value[13] !== undefined ? value[13] : 0) * 0.1;
+                const v = Math.sqrt(Math.pow(vx, 2) + Math.pow(vy, 2) + Math.pow(vz, 2));
+                console.log(vx);
+
+                setSpeed(`${v.toFixed(3)} m/s`);
                 setAltitude(value[6] !== undefined ? value[6] : 621);
                 setHeading(value[7] !== undefined ? value[7] : 195);
                 setFlightTime(value[8] !== undefined ? value[8] : 3.20);

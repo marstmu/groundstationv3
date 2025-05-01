@@ -37,4 +37,4 @@ def handle_message(data):
 
 
 if __name__ == '__main__':
-    socketio.run(app, host="::", port=5001, allow_unsafe_werkzeug=True)
+    socketio.run(app, host="::", port=80, allow_unsafe_werkzeug=True)
