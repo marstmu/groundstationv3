@@ -21,7 +21,11 @@ export default function Telemetry() {
 
     const [speed, setSpeed] = useState("52 m/s");
     const [mcuTemp, setMcuTemp] = useState(0);
-    const [altitude, setAltitude] = useState(0);
+    const [altitude, setAltitude] = useState(621);
+    const [heading, setHeading] = useState(195);
+    const [flightTime, setFlightTime] = useState(3.20);
+    const [airTemp, setAirTemp] = useState(16);
+    const [battery, setBattery] = useState(4.1);
     const [quaternion, setQuaternion] = useState([0,0,0,0]);
 
 
@@ -48,9 +52,17 @@ export default function Telemetry() {
         socket.on("disconnect", onDisconnect);
 
         socket.on("telemetry_push", (value) => {
-            setQuaternion(value.slice(0,4))
-
+            setQuaternion(value.slice(0,4));
             setMcuTemp(value[4]);
+            
+            if (value.length > 5) {
+                setSpeed(`${value[5] !== undefined ? value[5] : 52} m/s`);
+                setAltitude(value[6] !== undefined ? value[6] : 621);
+                setHeading(value[7] !== undefined ? value[7] : 195);
+                setFlightTime(value[8] !== undefined ? value[8] : 3.20);
+                setAirTemp(value[9] !== undefined ? value[9] : 16);
+                setBattery(value[10] !== undefined ? value[10] : 4.1);
+            }
         });
 
         return () => {
@@ -77,13 +89,13 @@ export default function Telemetry() {
                     <div className="flex-1 grid grid-rows-3 grid-cols-1 sm:grid-rows-2 sm:grid-cols-2 lg:grid-rows-1 lg:grid-cols-5 flex-wrap gap-y-2 sm:gap-2 min-h-fit justify-stretch">
                         <Window title="Flight Data" className="">
                             <div className="grid grid-cols-3 lg:grid-cols-1 relative py-2 gap-x-2 gap-y-4 justify-center">
-                                <TextGauge id="SPD" title="SPD" value="52 m/s"/>
-                                <TextGauge title="ALT" value="621 ft"/>
-                                <TextGauge title="HDG" value="195°"/>
-                                <TextGauge title="FLT TIME" value="3.20s"/>
-                                <TextGauge title="AIR TEMP" value="16 °C"/>
+                                <TextGauge id="SPD" title="SPD" value={speed}/>
+                                <TextGauge title="ALT" value={`${altitude} ft`}/>
+                                <TextGauge title="HDG" value={`${heading}°`}/>
+                                <TextGauge title="FLT TIME" value={`${flightTime}s`}/>
+                                <TextGauge title="AIR TEMP" value={`${airTemp} °C`}/>
                                 <TextGauge title="MCU TEMP" value={`${mcuTemp} °C`}/>
-                                <TextGauge title="BATT" value="4.1 V"/>
+                                <TextGauge title="BATT" value={`${battery} V`}/>
                             </div>
                         </Window>
                         <Window title="GPS" className="row-start-2 sm:row-auto lg:col-span-3">
