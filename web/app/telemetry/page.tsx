@@ -20,13 +20,14 @@ export default function Telemetry() {
     const [transport, setTransport] = useState("N/A");
 
     const [speed, setSpeed] = useState("52 m/s");
-    const [mcuTemp, setMcuTemp] = useState(0);
-    const [altitude, setAltitude] = useState(621);
-    const [heading, setHeading] = useState(195);
+    const [long, setLong] = useState(0);
+    const [lat, setLat] = useState(0);
+    const [altitude, setAltitude] = useState(0);
     const [flightTime, setFlightTime] = useState(3.20);
     const [airTemp, setAirTemp] = useState(16);
-    const [battery, setBattery] = useState(4.1);
     const [quaternion, setQuaternion] = useState([0,0,0,0]);
+    const [lastRSSI, setLastRSSI] = useState(1);
+    const [pressure, setPressure] = useState(0);
 
 
     useEffect(() => {
@@ -52,23 +53,23 @@ export default function Telemetry() {
         socket.on("disconnect", onDisconnect);
 
         socket.on("telemetry_push", (value) => {
-            setQuaternion(value.slice(0,4));
-            setMcuTemp(value[4]);
+            setQuaternion(value.slice(1,5));
             
             if (value.length > 5) {
                 // Speed we can determine as we have acceleration and a constant time step.
-                const vx = (value[11] !== undefined ? value[11] : 0) * 0.1;
-                const vy = (value[12] !== undefined ? value[12] : 0) * 0.1;
-                const vz = (value[13] !== undefined ? value[13] : 0) * 0.1;
+                const vx = (value[12] !== undefined ? value[12] : 0) * 0.05;
+                const vy = (value[13] !== undefined ? value[13] : 0) * 0.05;
+                const vz = (value[14] !== undefined ? value[14] : 0) * 0.05;
                 const v = Math.sqrt(Math.pow(vx, 2) + Math.pow(vy, 2) + Math.pow(vz, 2));
-                console.log(vx);
 
                 setSpeed(`${v.toFixed(3)} m/s`);
-                setAltitude(value[6] !== undefined ? value[6] : 621);
-                setHeading(value[7] !== undefined ? value[7] : 195);
-                setFlightTime(value[8] !== undefined ? value[8] : 3.20);
-                setAirTemp(value[9] !== undefined ? value[9] : 16);
-                setBattery(value[10] !== undefined ? value[10] : 4.1);
+                setAltitude(value[7] !== undefined ? value[7] : altitude);
+                setFlightTime(value[0] !== undefined ? value[0] : flightTime);
+                setAirTemp(value[10] !== undefined ? value[10] : 16);
+                setLat(value[6] !== undefined ? value[6] : lat);
+                setLong(value[5] !== undefined ? value[5] : long);
+                setLastRSSI(value[15] !== undefined ? value[15] : lastRSSI);
+                setPressure(value[8] !== undefined ? value[8] : pressure);
             }
         });
 
@@ -98,11 +99,11 @@ export default function Telemetry() {
                             <div className="grid grid-cols-3 lg:grid-cols-1 relative py-2 gap-x-2 gap-y-4 justify-center">
                                 <TextGauge id="SPD" title="SPD" value={speed}/>
                                 <TextGauge title="ALT" value={`${altitude} ft`}/>
-                                <TextGauge title="HDG" value={`${heading}°`}/>
                                 <TextGauge title="FLT TIME" value={`${flightTime}s`}/>
                                 <TextGauge title="AIR TEMP" value={`${airTemp} °C`}/>
-                                <TextGauge title="MCU TEMP" value={`${mcuTemp} °C`}/>
-                                <TextGauge title="BATT" value={`${battery} V`}/>
+                                <TextGauge title="PRESSURE" value={`${pressure} °C`}/>
+                                <TextGauge title="LAT" value={`${lat}°N`}/>
+                                <TextGauge title="LONG" value={`${long}°W`}/>
                             </div>
                         </Window>
                         <Window title="GPS" className="row-start-2 sm:row-auto lg:col-span-3">
@@ -117,7 +118,7 @@ export default function Telemetry() {
                         <div className="col-span-2 lg:col-span-1 grid grid-cols-2 lg:grid-cols-1 gap-2">
                             <Window title="Radio" className="flex-auto">
                                 <div className="grid grid-cols-3 lg:grid-cols-1 relative py-2 gap-x-2 gap-y-4 justify-center">
-                                    <BarGauge title="RSSI" value="1"/>
+                                    <BarGauge title="RSSI" value={lastRSSI}/>
                                     <BarGauge title="SNR" value="1"/>
                                     <BarGauge title="LINK BDGT." value="1"/>
                                 </div>

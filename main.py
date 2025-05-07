@@ -1,22 +1,26 @@
 import machine
+from machine import Pin, SPI
 import sys
 import asyncio
 import struct
-from lib import rfm9x
+from lib.rfm9x import *
+
+RADIO_FREQ_MHZ = 915.0
 
 
 def decode_data(data):
     try:
-        format_string = '<14f'  # 4 quaternions, lat, lon, alt, satellites (int), pressure
+        format_string = '<15f'  # 4 quaternions, lat, lon, alt, satellites (int), pressure
         values = struct.unpack(format_string, data)
         return {
-            'quaternions': values[0:4],
-            'latitude': values[4],
-            'longitude': values[5],
-            'altitude': values[6],
-            'pressure': values[7],
-            'acceleration': values[8:10],
-            'gyroscope': values[11:13]
+            "time": values[0],
+            'quaternions': values[1:5],
+            'latitude': values[5],
+            'longitude': values[6],
+            'altitude': values[7],
+            'pressure': values[8],
+            'acceleration': values[9:12],
+            'gyroscope': values[12:15]
         }
     except Exception as e:
         print(f"Decoding error: {e}")
@@ -24,6 +28,28 @@ def decode_data(data):
 
 
 async def main():
+    CS = Pin(17, Pin.OUT)
+    RESET = Pin(16, Pin.OUT)
+    spi = SPI(0,
+              baudrate=1000000,
+              polarity=0,
+              phase=0,
+              bits=8,
+              firstbit=SPI.MSB,
+              sck=Pin(18),
+              mosi=Pin(19),
+              miso=Pin(20)
+              )
+
+    rfm9x = RFM9x(spi, CS, RESET, RADIO_FREQ_MHZ)
+    rfm9x.tx_power = 14
+
+    # Configure for better reliability
+    rfm9x.signal_bandwidth = 500000
+    rfm9x.coding_rate = 5
+    rfm9x.spreading_factor = 7
+    rfm9x.enable_crc = True
+
     while True:
         await asyncio.sleep(0.04)
 
@@ -35,4 +61,8 @@ async def main():
                 a = data['acceleration']
                 g = data['gyroscope']
                 sys.stdout.write(
-                    f"{q[0]},{q[1]},{q[2]},{q[3]},{data['longitude']},{data['latitude']},{data['altitude']},{data['pressure']},{a[8]},{a[9]},{a[10]},{g[11]},{g[12]},{g[13]},{rfm9x.last_rssi}\n")
+                    f"{data['time']},{q[0]},{q[1]},{q[2]},{q[3]},{data['longitude']},{data['latitude']},{data['altitude']},{data['pressure']},{a[0]},{a[1]},{a[2]},{g[0]},{g[1]},{g[2]},{rfm9x.last_rssi}\n")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
