@@ -57,17 +57,17 @@ export default function Telemetry() {
             
             if (value.length > 5) {
                 // Speed we can determine as we have acceleration and a constant time step.
-                const vx = (value[12] !== undefined ? value[12] : 0) * 0.05;
-                const vy = (value[13] !== undefined ? value[13] : 0) * 0.05;
-                const vz = (value[14] !== undefined ? value[14] : 0) * 0.05;
+                const vx = (value[12] !== undefined ? value[12] / 100 : 0) * 0.05;
+                const vy = (value[13] !== undefined ? value[13] / 100 : 0) * 0.05;
+                const vz = (value[14] !== undefined ? value[14] / 100 : 0) * 0.05;
                 const v = Math.sqrt(Math.pow(vx, 2) + Math.pow(vy, 2) + Math.pow(vz, 2));
 
                 setSpeed(`${v.toFixed(3)} m/s`);
                 setAltitude(value[7] !== undefined ? value[7] : altitude);
                 setFlightTime(value[0] !== undefined ? value[0] : flightTime);
                 setAirTemp(value[10] !== undefined ? value[10] : 16);
-                setLat(value[6] !== undefined ? value[6] : lat);
-                setLong(value[5] !== undefined ? value[5] : long);
+                setLat(value[6] !== undefined ? value[6] / 100 : lat);
+                setLong(value[5] !== undefined ? value[5] / 100 : long);
                 setLastRSSI(value[15] !== undefined ? value[15] : lastRSSI);
                 setPressure(value[8] !== undefined ? value[8] : pressure);
             }
