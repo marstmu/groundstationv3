@@ -58,9 +58,8 @@ async def main():
             if data:
                 q = data['quaternions']
                 a = data['acceleration']
-                g = data['gyroscope']
                 sys.stdout.write(
-                    f"{data['time']},{q[0] / 100},{q[1] / 100},{q[2] / 100},{q[3] / 100},{data['longitude']},{data['latitude']},{data['altitude']},{data['pressure']},{a[0]},{a[1]},{a[2]},{g[0]},{g[1]},{g[2]},{rfm9x.last_rssi}\n")
+                    f"{data['time']},{q[0] / 100},{q[1] / 100},{q[2] / 100},{q[3] / 100},{data['longitude']},{data['latitude']},{data['altitude']},{data['pressure']},{a[0]},{a[1]},{a[2]},{rfm9x.last_rssi}\n")
 
 
 if __name__ == "__main__":
