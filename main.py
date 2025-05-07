@@ -10,7 +10,7 @@ RADIO_FREQ_MHZ = 915.0
 
 def decode_data(data):
     try:
-        format_string = '<15f'  # 4 quaternions, lat, lon, alt, satellites (int), pressure
+        format_string = "<1f4h3h1f3h"
         values = struct.unpack(format_string, data)
         return {
             "time": values[0],
@@ -20,7 +20,6 @@ def decode_data(data):
             'altitude': values[7],
             'pressure': values[8],
             'acceleration': values[9:12],
-            'gyroscope': values[12:15]
         }
     except Exception as e:
         print(f"Decoding error: {e}")
@@ -61,7 +60,7 @@ async def main():
                 a = data['acceleration']
                 g = data['gyroscope']
                 sys.stdout.write(
-                    f"{data['time']},{q[0]},{q[1]},{q[2]},{q[3]},{data['longitude']},{data['latitude']},{data['altitude']},{data['pressure']},{a[0]},{a[1]},{a[2]},{g[0]},{g[1]},{g[2]},{rfm9x.last_rssi}\n")
+                    f"{data['time']},{q[0] / 100},{q[1] / 100},{q[2] / 100},{q[3] / 100},{data['longitude']},{data['latitude']},{data['altitude']},{data['pressure']},{a[0]},{a[1]},{a[2]},{g[0]},{g[1]},{g[2]},{rfm9x.last_rssi}\n")
 
 
 if __name__ == "__main__":
