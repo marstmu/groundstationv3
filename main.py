@@ -3,9 +3,12 @@ from machine import Pin, SPI
 import sys
 import asyncio
 import struct
+import select
 from lib.rfm9x import *
 
 RADIO_FREQ_MHZ = 915.0
+
+node_addr = 1
 
 
 def decode_data(data):
@@ -26,7 +29,7 @@ def decode_data(data):
         return None
 
 
-async def main():
+async def poll_rfm():
     CS = Pin(17, Pin.OUT)
     RESET = Pin(16, Pin.OUT)
     spi = SPI(0,
@@ -48,9 +51,18 @@ async def main():
     rfm9x.coding_rate = 5
     rfm9x.spreading_factor = 7
     rfm9x.enable_crc = True
+    rfm9x.node = node_addr
 
     while True:
         await asyncio.sleep(0.04)
+
+        uart_event = select.select([sys.stdin], [], [], 0)
+        if uart_event[0]:
+            data = sys.stdin.readline().split()
+            if data:
+                if data[0] == 'set_channel':
+                    rfm9x.node = int(data[1])
+                    sys.stdout.write(f"gs,set receive channel to [{rfm9x.node}]\n")
 
         packet = rfm9x.receive(timeout=5.0)
         if packet is not None:
@@ -59,7 +71,13 @@ async def main():
                 q = data['quaternions']
                 a = data['acceleration']
                 sys.stdout.write(
-                    f"{data['time']},{q[0] / 100},{q[1] / 100},{q[2] / 100},{q[3] / 100},{data['longitude']},{data['latitude']},{data['altitude']},{data['pressure']},{a[0]},{a[1]},{a[2]},{rfm9x.last_rssi}\n")
+                    f"tel,{data['time']},{q[0] / 100},{q[1] / 100},{q[2] / 100},{q[3] / 100},{data['longitude']},{data['latitude']},{data['altitude']},{data['pressure']},{a[0]},{a[1]},{a[2]},{rfm9x.last_rssi}\n")
+
+
+async def main():
+    rfm_task = asyncio.create_task(poll_rfm())
+
+    await asyncio.gather(rfm_task)
 
 
 if __name__ == "__main__":
