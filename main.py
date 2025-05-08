@@ -10,16 +10,14 @@ RADIO_FREQ_MHZ = 915.0
 
 def decode_data(data):
     try:
-        format_string = "<1f4h3h1f3h"
+        format_string = "<1f5h1f1h"
         values = struct.unpack(format_string, data)
         return {
             "time": values[0],
             'quaternions': values[1:5],
-            'latitude': values[5],
-            'longitude': values[6],
-            'altitude': values[7],
-            'pressure': values[8],
-            'acceleration': values[9:12],
+            "alt": values[5],
+            'pressure': values[6],
+            'acceleration': values[7],
         }
     except Exception as e:
         print(f"Decoding error: {e}")
@@ -58,9 +56,12 @@ async def main():
             if data:
                 q = data['quaternions']
                 a = data['acceleration']
+                p = data["pressure"]
+                alt = data["alt"]
                 sys.stdout.write(
-                    f"{data['time']},{q[0] / 100},{q[1] / 100},{q[2] / 100},{q[3] / 100},{data['longitude']},{data['latitude']},{data['altitude']},{data['pressure']},{a[0]},{a[1]},{a[2]},{rfm9x.last_rssi}\n")
+                    f"{data['time']},{q[0] / 100},{q[1] / 100},{q[2] / 100},{q[3] / 100},{alt},{p},{a / 100},{rfm9x.last_rssi}\n")
 
 
 if __name__ == "__main__":
     asyncio.run(main())
+
