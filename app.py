@@ -13,17 +13,29 @@ socketio = SocketIO(app, cors_allowed_origins=['http://localhost:3000'])
 worker_thread = None
 thread_lock = Lock()
 logger = Logger()
+srl: Serial
 
 
 def read_from_serial():
-    with Serial(port='/dev/tty.usbmodem101', baudrate=9600, timeout=5) as ser:
+    with Serial(port='COM3', baudrate=9600, timeout=5) as ser:
+        global srl
+        srl = ser
         while True:
-            raw_data = ser.readline().decode()
+            raw_data = ser.readline().decode("utf-8")
+            logger.log(raw_data)
+
             data = raw_data.strip().split(',')
             if data:
                 print(data)
-                logger.log(raw_data)
-                socketio.emit('telemetry_push', data)
+                match data[0]:
+                    case "tel":
+                        data = data[1:]
+                        socketio.emit('telemetry_push', data)
+                    case "gs":
+                        data = data[1:]
+                        socketio.emit('ground_station_msg', data)
+                    case _:
+                        pass
 
 
 @socketio.on('connect')
@@ -35,9 +47,10 @@ def accept_connection(auth):
     send('Connected')
 
 
-@socketio.on('message')
-def handle_message(data):
-    emit('telemetry_push', "yo")
+@socketio.on('gs_command')
+def handle_command(data):
+    if srl:
+        srl.write(f"{data}\n".encode())
 
 
 if __name__ == '__main__':

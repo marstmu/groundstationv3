@@ -1,0 +1,12 @@
+import {ComponentProps} from "react";
+
+const TextGauge = (props: ComponentProps<any>) => {
+    return (
+        <div className={"border-2 border-gray-500 p-2 rounded-lg font-mono relative" + props.className}>
+            <h2 className=" text-xs sm:text-sm lg:text-base absolute -top-2 sm:-top-3 bg-gray-900 h-fit px-2">{props.title}</h2>
+            <input className={"bg-transparent text-sm sm:text-lg lg:text-lg w-full rounded-none hover:bg-red-500" + props.valueClassName}>{props.value}</input>
+        </div>
+    );
+}
+
+export default TextGauge;
